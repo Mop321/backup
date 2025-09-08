@@ -64,7 +64,7 @@ function CreateReceipt({ addReceipt }) {
         <input
           name="amount"
           placeholder="סכום כולל"
-          type="number"
+          type=""
           onChange={handleChange}
         />
         <input
