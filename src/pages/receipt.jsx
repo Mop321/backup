@@ -1,19 +1,36 @@
 import React, { useEffect, useState } from "react";
 import "./receipt.css";
 
+const API_URL = "https://backup-0k8h.onrender.com"; // backend on Render
+
 function Receipt() {
   const [receipts, setReceipts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/receipts")
-      .then((res) => res.json())
-      .then((data) => setReceipts(data));
+    (async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/receipts`, {
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        setReceipts(Array.isArray(data) ? data : []);
+      } catch (e) {
+        setErr(e.message || "API error");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  if (receipts.length === 0) return <p>אין נתונים להצגה</p>;
+  if (loading) return <p>טוען…</p>;
+  if (err) return <p>שגיאה: {String(err)}</p>;
+  if (!receipts.length) return <p>אין נתונים להצגה</p>;
 
-  const latest = receipts[receipts.length - 1];
-  const amount = parseFloat(latest.amount);
+  const latest = receipts[receipts.length - 1] || {};
+  const amount = Number(latest.amount || 0) || 0;
   const totalWithoutVat = amount / 1.17;
   const vatAmount = amount - totalWithoutVat;
 
@@ -48,12 +65,15 @@ function Receipt() {
               <th style={{ width: "30%" }}>סכום בש"ח</th>
             </tr>
           </thead>
+        </table>
+
+        <table>
           <tbody>
             <tr>
-              <td rowSpan="6" style={{ verticalAlign: "top" }}>
+              <td rowSpan="6" style={{ verticalAlign: "top", width: "70%" }}>
                 {latest.item}
               </td>
-              <td>&nbsp;</td>
+              <td style={{ width: "30%" }}>&nbsp;</td>
             </tr>
             {[...Array(5)].map((_, idx) => (
               <tr key={idx}>

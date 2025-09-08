@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./create.css";
+
+const API_URL = "https://backup-0k8h.onrender.com"; // ה־backend שלך ב-Render
+
 function CreateReceipt({ addReceipt }) {
   const [formData, setFormData] = useState({
     id: "",
@@ -11,23 +14,45 @@ function CreateReceipt({ addReceipt }) {
     quantity: 1,
     paymentType: "",
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState(null);
 
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "number" ? Number(value) : value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch("http://localhost:3000/api/receipts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
-    const savedReceipt = await response.json();
-    addReceipt(savedReceipt);
-    navigate("/receipt");
+    setSubmitting(true);
+    setErr(null);
+    try {
+      const res = await fetch(`${API_URL}/api/receipts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          amount: Number(formData.amount) || 0,
+          quantity: Number(formData.quantity) || 1,
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const savedReceipt = await res.json();
+      if (typeof addReceipt === "function") addReceipt(savedReceipt);
+      navigate("/receipt");
+    } catch (e) {
+      setErr(e.message || "API error");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -53,7 +78,12 @@ function CreateReceipt({ addReceipt }) {
           placeholder="אמצעי תשלום"
           onChange={handleChange}
         />
-        <button type="submit">צור קבלה</button>
+
+        {err && <p style={{ color: "red" }}>שגיאה: {err}</p>}
+
+        <button type="submit" disabled={submitting}>
+          {submitting ? "שולח..." : "צור קבלה"}
+        </button>
       </form>
     </div>
   );
