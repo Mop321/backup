@@ -4,7 +4,7 @@ import CreateReceipt from "./pages/createRec";
 import Receipt from "./pages/receipt";
 import Home from "./pages/Home";
 
-const url = "https://backup-1-4pfb.onrender.com";
+const url = "https://backup-0k8h.onrender.com";
 function App() {
   const [receiptData, setReceiptData] = useState(null);
 
