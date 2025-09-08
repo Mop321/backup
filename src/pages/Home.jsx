@@ -2,43 +2,47 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./css.css";
 
-const API_URL = "https://backup-0k8h.onrender.com"; // your backend on Render
+const API_URL = "https://backup-0k8h.onrender.com";
 
 function Home() {
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/receipts`, {
-          headers: { Accept: "application/json" },
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setReceipts(Array.isArray(data) ? data : []);
-      } catch (e) {
-        setErr(e.message || "API error");
-      } finally {
-        setLoading(false);  
-      }
-    })();
-  }, []);
-
-  const handleDelete = async (anyId) => {
-    const ok = window.confirm("Are you sure you want to delete this receipt?");
-    if (!ok) return;
-
+  async function fetchAll() {
     try {
-      // support either Mongo _id or your own id
-      const id =
-        typeof anyId === "string" || typeof anyId === "number" ? anyId : "";
-      const res = await fetch(`${API_URL}/api/receipts/${id}`, {
-        method: "DELETE",
+      const res = await fetch(`${API_URL}/api/receipts`, {
+        headers: { Accept: "application/json" },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setReceipts((prev) => prev.filter((rec) => (rec._id || rec.id) !== id));
+      const data = await res.json();
+      setReceipts(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setErr(e.message || "API error");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchAll();
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (!id) {
+      alert("Missing receipt id");
+      return;
+    }
+    const ok = window.confirm("Are you sure you want to delete this receipt?");
+    if (!ok) return;
+    try {
+      const res = await fetch(
+        `${API_URL}/api/receipts/${encodeURIComponent(id)}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // after delete, server reorders ids → refetch to stay in sync
+      await fetchAll();
     } catch (e) {
       alert(`Delete failed: ${e.message || e}`);
     }
@@ -71,14 +75,15 @@ function Home() {
 
         <ul className="recepits_data">
           {receipts.map((receipt) => {
-            const rid = receipt._id || receipt.id;
+            const prettyId = receipt.id || receipt._id; // display either
             return (
-              <li className="link" key={rid}>
+              <li className="link" key={receipt._id || receipt.id}>
                 <Link to="/receipt">
                   {receipt.name} - ₪{receipt.amount} - {receipt.date} -{" "}
-                  {receipt.id || receipt._id}
+                  {prettyId}
                 </Link>
-                <button onClick={() => handleDelete(rid)}>תמחק</button>
+                {/* IMPORTANT: pass receipt.id (4-digit) to delete */}
+                <button onClick={() => handleDelete(receipt.id)}>תמחק</button>
               </li>
             );
           })}
