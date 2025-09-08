@@ -1,0 +1,57 @@
+* {
+  margin: 0;
+}
+.container {
+  max-width: 100%;
+  height: 80vh;
+  padding: 15px;
+}
+.container h1 {
+  font-size: 30px;
+  text-align: center;
+}
+
+.recepits_data {
+  text-align: center;
+  list-style: none;
+  background-color: antiquewhite;
+  margin: 10px;
+  height: 80vh;
+  justify-content: center;
+  align-items: center;
+  display: grid;
+  grid-template-rows: repeat(9, 1fr);
+}
+.link {
+  gap: 30px;
+  display: grid;
+  grid-template-columns: 300px 150px;
+  align-items: center;
+}
+
+.link a {
+  border: 1px solid black;
+  border-radius: 20px;
+
+  font-size: 16px;
+  color: red;
+  text-decoration: none;
+}
+
+@media screen and (max-width: 760px) {
+  .container {
+    height: auto;
+    width: auto;
+  }
+  .recepits_data {
+    height: auto;
+    width: auto;
+    margin: auto;
+    gap: 5px;
+  }
+  .link {
+    grid-template-columns: auto;
+    gap: auto;
+    padding: 10px;
+  }
+}
