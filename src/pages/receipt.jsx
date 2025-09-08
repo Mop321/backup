@@ -1,14 +1,40 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./receipt.css";
 
-function Receipt({ data }) {
-  if (!data) return <p>אין נתונים להצגה</p>;
+const API_URL = "https://backup-0k8h.onrender.com"; // backend on Render
 
-  const amount = Number(data.amount || 0);
+function Receipt() {
+  const [receipts, setReceipts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/receipts`, {
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        setReceipts(Array.isArray(data) ? data : []);
+      } catch (e) {
+        setErr(e.message || "API error");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  if (loading) return <p>טוען…</p>;
+  if (err) return <p>שגיאה: {String(err)}</p>;
+  if (!receipts.length) return <p>אין נתונים להצגה</p>;
+
+  const latest = receipts[receipts.length - 1] || {};
+  const amount = Number(latest.amount || 0) || 0;
   const totalWithoutVat = amount / 1.17;
   const vatAmount = amount - totalWithoutVat;
 
-  // ✅ simple formatter: commas every 3 digits, 2 decimals
+  // ✅ format numbers: commas every 3 digits, 2 decimals
   const formatNumber = (num) =>
     Number(num || 0).toLocaleString("en-US", {
       minimumFractionDigits: 2,
@@ -33,9 +59,9 @@ function Receipt({ data }) {
         </div>
         <h1 style={{ textAlign: "center", marginTop: 20 }}>
           חשבונית מס / קבלה מס׳:{" "}
-          <span style={{ color: "red", fontWeight: "bold" }}>{data.id}</span>
+          <span style={{ color: "red", fontWeight: "bold" }}>{latest.id}</span>
         </h1>
-        <p>לכבוד: {data.name}</p>
+        <p>לכבוד: {latest.name}</p>
       </header>
 
       <section>
@@ -46,12 +72,15 @@ function Receipt({ data }) {
               <th style={{ width: "30%" }}>סכום בש"ח</th>
             </tr>
           </thead>
+        </table>
+
+        <table>
           <tbody>
             <tr>
-              <td rowSpan="6" style={{ verticalAlign: "top" }}>
-                {data.item}
+              <td rowSpan="6" style={{ verticalAlign: "top", width: "70%" }}>
+                {latest.item}
               </td>
-              <td>&nbsp;</td>
+              <td style={{ width: "30%" }}>&nbsp;</td>
             </tr>
             {[...Array(5)].map((_, idx) => (
               <tr key={idx}>
@@ -60,24 +89,24 @@ function Receipt({ data }) {
             ))}
             <tr>
               <td colSpan="2" className="tds">
-                סה"כ: {formatNumber(totalWithoutVat)}
+                סה"כ: ₪{formatNumber(totalWithoutVat)}
               </td>
             </tr>
             <tr>
               <td colSpan="2" className="tds">
-                מע"מ : {formatNumber(vatAmount)}
+                מע"מ : ₪{formatNumber(vatAmount)}
               </td>
             </tr>
             <tr>
               <td colSpan="2" className="tds a">
-                סה"כ כולל מע"מ: {formatNumber(amount)}
+                סה"כ כולל מע"מ: ₪{formatNumber(amount)}
               </td>
             </tr>
           </tbody>
         </table>
 
         <div style={{ textAlign: "right" }}>
-          <p>תאריך: {data.date}</p>
+          <p>תאריך: {latest.date}</p>
         </div>
       </section>
 
