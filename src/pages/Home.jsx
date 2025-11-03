@@ -41,7 +41,6 @@ function Home() {
         { method: "DELETE" }
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      // after delete, server reorders ids → refetch to stay in sync
       await fetchAll();
     } catch (e) {
       alert(`Delete failed: ${e.message || e}`);
@@ -72,17 +71,16 @@ function Home() {
         <Link to="/create">
           <button>צור קבלה חדשה</button>
         </Link>
-
         <ul className="recepits_data">
           {receipts.map((receipt) => {
-            const prettyId = receipt.id || receipt._id; // display either
+            const prettyId = receipt.id || receipt._id;
             return (
               <li className="link" key={receipt._id || receipt.id}>
-                <Link to="/receipt">
+                {/* Link sends to /receipt/:id */}
+                <Link to={`/receipt/${prettyId}`}>
                   {receipt.name} - ₪{receipt.amount} - {receipt.date} -{" "}
                   {prettyId}
                 </Link>
-                {/* IMPORTANT: pass receipt.id (4-digit) to delete */}
                 <button onClick={() => handleDelete(receipt.id)}>תמחק</button>
               </li>
             );

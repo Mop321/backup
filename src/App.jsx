@@ -29,13 +29,10 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route
-          path="/create"
-          element={<CreateReceipt addReceipt={handleCreate} />}
-        />
-        <Route path="/receipt" element={<Receipt data={receiptData} />} />
+        <Route path="/create" element={<CreateReceipt />} />
+        <Route path="/receipt/:id" element={<Receipt />} />
       </Routes>
-    </BrowserRouter>
+    </BrowserRouter>  
   );
 }
 
