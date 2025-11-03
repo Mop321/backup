@@ -78,7 +78,7 @@ function Home() {
             const prettyId = receipt.id || receipt._id; // display either
             return (
               <li className="link" key={receipt._id || receipt.id}>
-                <Link to={`/receipt/${receipt._id || receipt.id}`}>
+                <Link to="/receipt">
                   {receipt.name} - ₪{receipt.amount} - {receipt.date} -{" "}
                   {prettyId}
                 </Link>

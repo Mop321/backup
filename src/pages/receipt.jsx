@@ -29,6 +29,7 @@ function Receipt() {
   if (err) return <p>שגיאה: {String(err)}</p>;
   if (!receipts.length) return <p>אין נתונים להצגה</p>;
 
+  const latest = receipts[receipts.length - 1] || {};
   const amount = Number(latest.amount || 0) || 0;
   const totalWithoutVat = amount / 1.18;
   const vatAmount = amount - totalWithoutVat;
