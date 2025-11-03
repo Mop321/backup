@@ -1,46 +1,40 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import "./receipt.css";
 
-const API_URL = "https://backup-0k8h.onrender.com";
+const API_URL = "https://backup-0k8h.onrender.com"; // backend on Render
 
 function Receipt() {
-  const { id } = useParams(); // Get id from URL
-  const [receipt, setReceipt] = useState(null);
+  const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
 
   useEffect(() => {
-    if (!id) {
-      setErr("Missing receipt id");
-      setLoading(false);
-      return;
-    }
     (async () => {
       try {
-        const res = await fetch(
-          `${API_URL}/api/receipts/${encodeURIComponent(id)}`,
-          { headers: { Accept: "application/json" } }
-        );
+        const res = await fetch(`${API_URL}/api/receipts`, {
+          headers: { Accept: "application/json" },
+        });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        setReceipt(data);
+        setReceipts(Array.isArray(data) ? data : []);
       } catch (e) {
         setErr(e.message || "API error");
       } finally {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, []);
 
   if (loading) return <p>טוען…</p>;
   if (err) return <p>שגיאה: {String(err)}</p>;
-  if (!receipt) return <p>לא נמצאה קבלה</p>;
+  if (!receipts.length) return <p>אין נתונים להצגה</p>;
 
-  const amount = Number(receipt.amount || 0) || 0;
+  const latest = receipts[receipts.length - 1] || {};
+  const amount = Number(latest.amount || 0) || 0;
   const totalWithoutVat = amount / 1.18;
   const vatAmount = amount - totalWithoutVat;
 
+  // ✅ format numbers: commas every 3 digits, 2 decimals
   const formatNumber = (num) =>
     Number(num || 0).toLocaleString("en-US", {
       minimumFractionDigits: 2,
@@ -65,9 +59,9 @@ function Receipt() {
         </div>
         <h1 style={{ textAlign: "center", marginTop: 20 }}>
           חשבונית מס / קבלה מס׳:{" "}
-          <span style={{ color: "red", fontWeight: "bold" }}>{receipt.id}</span>
+          <span style={{ color: "red", fontWeight: "bold" }}>{latest.id}</span>
         </h1>
-        <p>לכבוד: {receipt.name}</p>
+        <p>לכבוד: {latest.name}</p>
       </header>
 
       <section>
@@ -84,7 +78,7 @@ function Receipt() {
           <tbody>
             <tr>
               <td rowSpan="6" style={{ verticalAlign: "top", width: "70%" }}>
-                {receipt.item}
+                {latest.item}
               </td>
               <td style={{ width: "30%" }}>&nbsp;</td>
             </tr>
@@ -112,7 +106,7 @@ function Receipt() {
         </table>
 
         <div style={{ textAlign: "right" }}>
-          <p>תאריך: {receipt.date}</p>
+          <p>תאריך: {latest.date}</p>
         </div>
       </section>
 
