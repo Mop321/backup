@@ -42,10 +42,11 @@ app.post("/api/receipts", async (req, res) => {
 });
 
 // 📋 Get receipts
-app.get("/api/receipts", async (req, res) => {
+app.get("/api/receipts/:id", async (req, res) => {
   try {
-    const receipts = await Receipt.find().sort({ id: 1 });
-    res.json(receipts);
+    const receipt = await Receipt.findOne({ id: req.params.id });
+    if (!receipt) return res.status(404).json({ error: "Receipt not found" });
+    res.json(receipt);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch receipts" });
   }
