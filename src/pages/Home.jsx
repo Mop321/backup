@@ -75,10 +75,10 @@ function Home() {
 
         <ul className="recepits_data">
           {receipts.map((receipt) => {
-            const prettyId = receipt.id || receipt._id; // display either
+            const prettyId = receipt.id; // display either
             return (
               <li className="link" key={receipt.id}>
-                <Link to="/receipt">
+                <Link to={`/receipt?id=${receipt.id}`}>
                   {receipt.name} - ₪{receipt.amount} - {receipt.date} -{" "}
                   {prettyId}
                 </Link>
